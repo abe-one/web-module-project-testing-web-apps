@@ -1,5 +1,6 @@
 import React from "react";
 import {
+  findByTestId,
   getAllByRole,
   getByRole,
   render,
@@ -14,7 +15,8 @@ const renders = () => render(<ContactForm />);
 
 test("renders without errors", () => {
   // Arrange:
-  render(<ContactForm />);
+  renders();
+  expect(screen.queryByTestId(/error/i)).toBeFalsy();
   // Act:
   // Assert:
 });
@@ -23,7 +25,7 @@ test("renders the contact form header", () => {
   // Arrange:
   renders();
   // Act:
-  screen.getByText(/contact form/i);
+  expect(screen.getByText(/contact form/i));
   // Assert: asserted by get
 });
 
@@ -88,19 +90,34 @@ test('renders "email must be a valid email address" if an invalid email is enter
 test('renders "lastName is a required field" if an last name is not entered and the submit button is clicked', async () => {
   // Arrange:
   renders();
-  const lNameInput = screen.getByLabelText(/lName/i);
   // Act:
   userEvent.click(screen.getByRole("button"));
   // Assert:
-  expect(screen.getallByTestId(/error/i)).toHaveTextContent(
-    /lastName must be a valid email address/i
-  );
+  expect(screen.getByText(/lastName is a required field/i));
 });
 
 test("renders all firstName, lastName and email text when submitted. Does NOT render message if message is not submitted.", async () => {
   // Arrange:
+  renders();
+
+  const fName = "Eddward";
+  const lName = "Burke";
+  const email = "a@a.a";
+  const fNameInput = screen.getByLabelText(/first name/i);
+  const lNameInput = screen.getByLabelText(/last name/i);
+  const emailInput = screen.getByLabelText(/email/i);
+  const messageInput = screen.getByLabelText(/message/i);
+  const button = screen.getByRole("button");
   // Act:
+  userEvent.type(fNameInput, fName);
+  userEvent.type(lNameInput, lName);
+  userEvent.type(emailInput, email);
+  userEvent.click(button);
   // Assert:
+  expect(screen.getByTestId("firstnameDisplay").textContent).toContain(fName);
+  expect(screen.getByTestId("lastnameDisplay").textContent).toContain(lName);
+  expect(screen.getByTestId("emailDisplay").textContent).toContain(email);
+  expect(screen.queryByTestId("messageDisplay")).toBeFalsy();
 });
 
 test("renders all fields text when all fields are submitted.", async () => {
